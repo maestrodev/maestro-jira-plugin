@@ -1,0 +1,157 @@
+[
+    {
+      "name" : "jira create issue",
+      "description" : "Create An Issue In Jira",
+      "author" : "Kelly Plummer",
+      "version" : "${project.version}-${buildNumber}",
+      "class" : "com.maestrodev.JiraWorker",
+      "type" : "java",
+      "dependencies" : [ {
+        "name" : "${project.artifactId}-${project.version}.jar"
+      }, {
+        "name" : "pom.xml"
+      } ],
+      "task" : {
+        "command" : "/jira/createIssue",
+        "inputs" : {
+          "host" : {
+            "required" : true,
+            "type" : "String",
+            "value" : "",
+            "description":"name of server the JIRA is running on"
+          },
+          "port" : {
+            "required" : true,
+            "type" : "Integer",
+            "value" : 8080,
+            "description":"port JIRA is listening to"
+          },
+          "use_ssl" : {
+            "required" : true,
+            "type" : "Boolean",
+            "value" : false,
+            "description":"Use ssl encryption"
+          },
+          "username" : {
+            "required" : true,
+            "type" : "String",
+            "description":"username to create issue as",
+            "value" : ""
+          },
+          "password" : {
+            "required" : true,
+            "type" : "Password",
+            "value" : "",
+            "description":""
+          },
+          "web_path" : {
+            "required" : false,
+            "type" : "String",
+            "value" : "",
+            "description":"context path for the JIRA webapp"
+          },
+          "project_key" : {
+            "required" : true,
+            "type" : "String",
+            "value" : "PROJECT_KEY",
+            "description":"token for referencing the project"
+          },
+          "summary" : {
+            "required" : true,
+            "type" : "String",
+            "value" : "",
+            "description":"summary description for new issue"
+          },
+          "issue_type_name" : {
+            "required" : true,
+            "type" : "String",
+            "value" : "Bug",
+            "description":"type of issue to create"
+          },
+          "description" : {
+            "required" : true,
+            "type" : "String",
+            "value" : "",
+            "description":"longer description for new issue"
+          }
+        },
+        "outputs" : {},
+        "tool_name" : "ALM"
+      }
+    },
+    {
+      "name" : "jira transition issues",
+      "description" : "Transitions Issues In Jira To A New State",
+      "author" : "Kelly Plummer",
+      "version" : "${project.version}-${buildNumber}",
+      "class" : "com.maestrodev.JiraWorker",
+      "type" : "java",
+      "dependencies" : [ {
+        "name" : "${project.artifactId}-${project.version}.jar"
+      }, {
+        "name" : "pom.xml"
+      } ],
+      "task" : {
+        "command" : "/jira/transitionIssues",
+        "inputs" : {
+          "host" : {
+            "required" : true,
+            "type" : "String",
+            "value" : "",
+            "description":"name of server the JIRA is running on"
+          },
+          "port" : {
+            "required" : true,
+            "type" : "Integer",
+            "value" : 8080,
+            "description":"port JIRA is listening to"
+          },
+          "use_ssl" : {
+            "required" : true,
+            "type" : "Boolean",
+            "value" : false,
+            "description":"Use ssl encryption"
+          },
+          "username" : {
+            "required" : true,
+            "type" : "String",
+            "description":"username to create issue as",
+            "value" : ""
+          },
+          "password" : {
+            "required" : true,
+            "type" : "Password",
+            "value" : "",
+            "description":""
+          },
+          "web_path" : {
+            "required" : false,
+            "type" : "String",
+            "value" : "",
+            "description":"context path for the JIRA webapp"
+          },
+          "comment" : {
+            "required" : true,
+            "type" : "String",
+            "value" : "",
+            "description":"description for issue transition"
+          },
+          "transition_name" : {
+            "required" : true,
+            "type" : "String",
+            "value" : "Resolve Issue",
+            "description":"name of the issue transition"
+          },
+          "issue_keys" : {
+            "required" : true,
+            "type" : "Array",
+            "value" : "",
+            "description":"list of issue keys to be transitioned"
+          }
+        },
+        "outputs" : {},
+        "tool_name" : "ALM"
+      }
+    }
+    
+]

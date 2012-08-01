@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.maestrodev</groupId>
+  <artifactId>maestro-alm-plugin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <name>maestro-alm-plugin</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <slf4j.version>1.5.8</slf4j.version>
+  </properties>
+
+  <scm>
+    <developerConnection>scm:git:git@github.com:maestrodev/maestro-alm-plugin.git</developerConnection>
+    <connection>scm:git:git@github.com:maestrodev/maestro-alm-plugin.git</connection>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>maestro-deploy</id>
+      <url>https://repo.maestrodev.com/archiva/repository/public-releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>maestro-deploy</id>
+      <url>https://repo.maestrodev.com/archiva/repository/public-snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>atlassian</id>
+      <url>https://maven.atlassian.com/content/repositories/atlassian-public/</url>
+    </repository>
+    <repository>
+      <id>maestrodev-snapshots</id>
+      <url>https://repo.maestrodev.com/archiva/repository/all/</url>
+      <snapshots>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    
+    
+    <dependency>
+      <groupId>com.maestrodev</groupId>
+      <artifactId>maestro-plugin</artifactId>
+      <version>1.2-SNAPSHOT</version>
+      <exclusions>
+      </exclusions>
+    </dependency>
+
+<!--    <dependency>
+        <groupId>com.ghosthack</groupId>
+        <artifactId>jira-json-client</artifactId>
+        <version>1.0.0</version>
+    </dependency>-->
+    <dependency>
+            <groupId>com.atlassian.jira</groupId>
+            <artifactId>jira-rest-java-client</artifactId>
+            <version>0.5</version>
+    </dependency>
+<!--
+    <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>1.5</version>
+    </dependency>-->
+
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+
+<!--    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-core</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-json</artifactId>
+      <version>1.5</version>
+    </dependency>-->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <artifactId>commons-codec</artifactId>
+      <groupId>commons-codec</groupId>
+      <type>jar</type>
+      <version>1.2</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/zip.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.1</version>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <shortRevisionLength>5</shortRevisionLength>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -1,0 +1,13 @@
+{
+  "fields": {
+    "host":"localhost",
+    "port":8080,
+    "use_ssl":false,
+    "username":"kelly",
+    "password":"door4rim",
+    "web_path":"/",
+    "comment":"Looks Great!",
+    "transition_name":"Resolve Issue",
+    "issue_keys":[""]
+  }
+}
