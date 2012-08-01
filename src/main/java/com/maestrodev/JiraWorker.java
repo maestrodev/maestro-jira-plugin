@@ -163,7 +163,7 @@ public class JiraWorker
     TransitionInput transitionInput = new TransitionInput(transition.getId());
     restClient.getIssueClient().transition(issue, transitionInput, pm);
 
-    writeOutput("Successfully Transitioned Issue " + issueKey + " To " + getField("transition_name"));
+    writeOutput("Successfully Transitioned Issue " + issueKey + " To " + getField("transition_name") + "\n");
   }
     
     private static Transition getTransitionByName(Iterable<Transition> transitions, String transitionName) {
