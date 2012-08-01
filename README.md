@@ -1,3 +1,3 @@
-maestro-alm-plugin
+maestro-jira-plugin
 =============
 
