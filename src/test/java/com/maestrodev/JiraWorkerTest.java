@@ -36,7 +36,7 @@ public class JiraWorkerTest
         // provision
         worker.createIssue();
 
-        assertNull( worker.getError() );
+        assertNull( worker.getError(), worker.getError() );
         
         Map response = (Map) worker.getFields().get("jira");
         
@@ -60,7 +60,7 @@ public class JiraWorkerTest
         // provision
         worker.transitionIssues();
 
-        assertNull( worker.getError() );
+        assertNull( worker.getError(), worker.getError() );
         
     }
     

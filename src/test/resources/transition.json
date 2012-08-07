@@ -1,10 +1,10 @@
 {
   "fields": {
-    "host":"localhost",
-    "port":8080,
-    "use_ssl":false,
-    "username":"kelly",
-    "password":"door4rim",
+    "host":"HOST",
+    "port":PORT,
+    "use_ssl":USE_SSL,
+    "username":"USERNAME",
+    "password":"PASSWORD",
     "web_path":"/",
     "comment":"Looks Great!",
     "transition_name":"Resolve Issue",

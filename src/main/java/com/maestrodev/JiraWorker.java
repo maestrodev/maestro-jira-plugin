@@ -103,6 +103,14 @@ public class JiraWorker
           addLink("Issue " + createResponse.getKey(), createResponse.getSelf());
           
           setField("jira", mapper.convertValue(createResponse, Map.class));
+        } else {
+          if(createResponse.getErrorMessages() != null) {
+            String errorMessage = "";
+            for(String message : createResponse.getErrorMessages()) {
+              errorMessage += message + "\n";
+            }
+            throw new Exception(errorMessage);
+          }
         }
       }catch(Exception e) {
         this.setError("Failed To Create Issue In JIRA " + e.getMessage());

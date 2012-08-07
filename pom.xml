@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.maestrodev</groupId>
-  <artifactId>maestro-alm-plugin</artifactId>
+  <artifactId>maestro-jira-plugin</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>maestro-alm-plugin</name>
+  <name>maestro-jira-plugin</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -13,8 +13,8 @@
   </properties>
 
   <scm>
-    <developerConnection>scm:git:git@github.com:maestrodev/maestro-alm-plugin.git</developerConnection>
-    <connection>scm:git:git@github.com:maestrodev/maestro-alm-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:maestrodev/maestro-jira-plugin.git</developerConnection>
+    <connection>scm:git:git@github.com:maestrodev/maestro-jira-plugin.git</connection>
   </scm>
 
   <distributionManagement>
