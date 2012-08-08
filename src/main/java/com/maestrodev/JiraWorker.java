@@ -76,6 +76,7 @@ public class JiraWorker
            null,
            null);
         
+        
         String auth = String.valueOf(Base64.encode((this.getField("username") + 
                 ":" + this.getField("password")).getBytes()));
         ObjectMapper mapper = new ObjectMapper();
@@ -99,18 +100,36 @@ public class JiraWorker
         }else if(statusCode == 201){
           writeOutput("Successfully Created An Issue In Jira\n");
           writeOutput("Issue Key :: " + createResponse.getKey() + "\n");
-          writeOutput("Link :: " + createResponse.getSelf() + "\n");
-          addLink("Issue " + createResponse.getKey(), createResponse.getSelf());
+          
+          String link = (new URI(
+           ("http" + (useSsl ? "s" : "")),
+           null,
+           this.getField("host"),
+           Integer.parseInt(this.getField("port")),
+           "",
+           null,
+           null)).toASCIIString() + "/browse/" +
+                  createResponse.getKey();
+          writeOutput("Link :: " + link + "\n");
+          addLink("Issue " + createResponse.getKey(), link);
           
           setField("jira", mapper.convertValue(createResponse, Map.class));
         } else {
+          String errorMessage = "";
           if(createResponse.getErrorMessages() != null) {
-            String errorMessage = "";
             for(String message : createResponse.getErrorMessages()) {
               errorMessage += message + "\n";
             }
-            throw new Exception(errorMessage);
+
           }
+          
+          if(createResponse.getErrors() != null){
+            for(Object key : createResponse.getErrors().keySet()) {
+              errorMessage += key + " :: " + createResponse.getErrors().get(key) + "\n";
+            }
+          }
+            
+          throw new Exception(errorMessage);          
         }
       }catch(Exception e) {
         this.setError("Failed To Create Issue In JIRA " + e.getMessage());
