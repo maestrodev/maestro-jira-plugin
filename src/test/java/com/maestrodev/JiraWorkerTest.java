@@ -40,6 +40,8 @@ public class JiraWorkerTest
         
         Map response = (Map) worker.getFields().get("jira");
         
+        assertNull(response.get("key"));
+        
         issueKeys = new ArrayList();
         issueKeys.add(response.get("key")); 
     }

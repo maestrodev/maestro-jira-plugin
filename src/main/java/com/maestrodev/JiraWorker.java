@@ -18,6 +18,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.org.apache.xml.internal.security.utils.Base64;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import javax.naming.AuthenticationException;
@@ -56,6 +57,9 @@ public class JiraWorker
       return jiraCreate;
     }
     
+    
+    
+    
     /**
      * update an issue in Jira
      */
@@ -65,16 +69,7 @@ public class JiraWorker
         logger.info("Creating Issue In JIRA");
         writeOutput("Creating An Issue In JIRA\n");
         
-        boolean useSsl = Boolean.parseBoolean(this.getField("use_ssl"));
-        
-        URI jiraServerUri = new URI(
-           ("http" + (useSsl ? "s" : "")),
-           null,
-           this.getField("host"),
-           Integer.parseInt(this.getField("port")),
-           this.getWebPath() + CREATE_ISSUE_PATH,
-           null,
-           null);
+        URI jiraServerUri = buildUri(CREATE_ISSUE_PATH);
         
         
         String auth = String.valueOf(Base64.encode((this.getField("username") + 
@@ -92,47 +87,57 @@ public class JiraWorker
         
         String body = response.getEntity(String.class);
         JiraCreateResponse createResponse = mapper.readValue(body, JiraCreateResponse.class);
-        if (statusCode == 401) {
-          throw new AuthenticationException("Invalid Username or Password");
-        } else if (statusCode == 404) {
-          throw new Exception("Rest Endpoint Not Found, Make Sure Jira Is "
-                  + "Atleast Version 5 And Accept Remote API Calls Is Enabled");
-        }else if(statusCode == 201){
-          writeOutput("Successfully Created An Issue In Jira\n");
-          writeOutput("Issue Key :: " + createResponse.getKey() + "\n");
-          
-          String link = (new URI(
+        handleCreateResponse(statusCode, createResponse, jiraServerUri.getScheme().contains("https"), mapper);
+      }catch(Exception e) {
+        this.setError("Failed To Create Issue In JIRA " + e.getMessage());
+      }
+    }
+
+    private URI buildUri(String path) throws URISyntaxException {
+        boolean useSsl = Boolean.parseBoolean(this.getField("use_ssl"));
+        
+        return (new URI(
            ("http" + (useSsl ? "s" : "")),
            null,
            this.getField("host"),
            Integer.parseInt(this.getField("port")),
-           "",
+           this.getWebPath() + path,
            null,
-           null)).toASCIIString() + "/browse/" +
-                  createResponse.getKey();
-          writeOutput("Link :: " + link + "\n");
-          addLink("Issue " + createResponse.getKey(), link);
-          
-          setField("jira", mapper.convertValue(createResponse, Map.class));
-        } else {
-          String errorMessage = "";
-          if(createResponse.getErrorMessages() != null) {
-            for(String message : createResponse.getErrorMessages()) {
-              errorMessage += message + "\n";
-            }
+           null));
+    }
+    
+    private void handleCreateResponse(int statusCode, JiraCreateResponse createResponse, boolean useSsl, ObjectMapper mapper) throws Exception {
+      if (statusCode == 401) {
+        throw new AuthenticationException("Invalid Username or Password");
+      } else if (statusCode == 404) {
+        throw new Exception("Rest Endpoint Not Found, Make Sure Jira Is "
+                + "Atleast Version 5 And Accept Remote API Calls Is Enabled");
+      }else if(statusCode == 201){
+        writeOutput("Successfully Created An Issue In Jira\n");
+        writeOutput("Issue Key :: " + createResponse.getKey() + "\n");
 
+        String link = (buildUri("/browse/" +
+                createResponse.getKey())).toASCIIString();
+        writeOutput("Link :: " + link + "\n");
+        addLink("Issue " + createResponse.getKey(), link);
+
+        setField("jira", mapper.convertValue(createResponse, Map.class));
+      } else {
+        String errorMessage = "";
+        if(createResponse.getErrorMessages() != null) {
+          for(String message : createResponse.getErrorMessages()) {
+            errorMessage += message + "\n";
           }
-          
-          if(createResponse.getErrors() != null){
-            for(Object key : createResponse.getErrors().keySet()) {
-              errorMessage += key + " :: " + createResponse.getErrors().get(key) + "\n";
-            }
-          }
-            
-          throw new Exception(errorMessage);          
+
         }
-      }catch(Exception e) {
-        this.setError("Failed To Create Issue In JIRA " + e.getMessage());
+
+        if(createResponse.getErrors() != null){
+          for(Object key : createResponse.getErrors().keySet()) {
+            errorMessage += key + " :: " + createResponse.getErrors().get(key) + "\n";
+          }
+        }
+
+        throw new Exception(errorMessage);          
       }
     }
     
@@ -150,14 +155,7 @@ public class JiraWorker
         
     
         JerseyJiraRestClientFactory factory = new JerseyJiraRestClientFactory();
-        URI jiraServerUri = new URI(
-           ("http" + (Boolean.parseBoolean(this.getField("use_ssl")) ? "s" : "")),
-           null,
-           this.getField("host"),
-           Integer.parseInt(this.getField("port")),
-           this.getWebPath(),
-           null,
-           null);
+        URI jiraServerUri = buildUri("");
         
         JiraRestClient restClient = factory.createWithBasicHttpAuthentication(jiraServerUri,
                 this.getField("username"),
