@@ -16,14 +16,14 @@ import org.json.simple.parser.ParseException;
 import org.junit.Test;
 
 /**
- * Tests for Maestro Cloud plugin.
+ * Tests for Maestro Jira plugin.
  */
 public class JiraWorkerTest
 {
     private static final JSONParser parser = new JSONParser();
     private static List issueKeys;
     /**
-     * Test for Alm
+     * Test for Jira
      */
     @Test
     public void createIssue()
@@ -33,14 +33,13 @@ public class JiraWorkerTest
 
         worker.setWorkitem( loadJson( "create" ) );
 
-        // provision
         worker.createIssue();
 
         assertNull( worker.getError(), worker.getError() );
         
         Map response = (Map) worker.getFields().get("jira");
         
-        assertNull(response.get("key"));
+        assertNotNull(response.get("key"));
         
         issueKeys = new ArrayList();
         issueKeys.add(response.get("key")); 
@@ -48,7 +47,7 @@ public class JiraWorkerTest
 
     
     /**
-     * Test for Alm
+     * Test for Jira
      */
     @Test
     public void transitIssue()
@@ -59,7 +58,7 @@ public class JiraWorkerTest
         worker.setWorkitem( loadJson( "transition" ) );
         
         worker.setField("issue_keys", issueKeys);
-        // provision
+
         worker.transitionIssues();
 
         assertNull( worker.getError(), worker.getError() );
