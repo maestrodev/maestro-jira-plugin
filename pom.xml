@@ -47,7 +47,7 @@
     <dependency>
       <groupId>com.maestrodev</groupId>
       <artifactId>maestro-plugin</artifactId>
-      <version>1.2-SNAPSHOT</version>
+      <version>1.2</version>
       <exclusions>
       </exclusions>
     </dependency>
