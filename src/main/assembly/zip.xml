@@ -11,12 +11,16 @@
       <directory>${basedir}</directory>
       <includes>
         <include>pom.xml</include>
-        <include>README.md</include>
+        <include>README*</include>
       </includes>
     </fileSet>
     <fileSet>
       <outputDirectory>/config</outputDirectory>
       <directory>${basedir}/config</directory>
+    </fileSet>
+    <fileSet>
+      <outputDirectory>/images</outputDirectory>
+      <directory>${basedir}/src/main/images</directory>
     </fileSet>
   </fileSets>
   <files>
