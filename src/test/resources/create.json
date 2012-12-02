@@ -1,10 +1,10 @@
 {
   "fields": {
-    "host":"${host}",
-    "port":${port},
-    "use_ssl":${ssl},
-    "username":"${username}",
-    "password":"${password}",
+    "host":"${jira.host}",
+    "port":${jira.port},
+    "use_ssl":${jira.ssl},
+    "username":"${jira.username}",
+    "password":"${jira.password}",
     "web_path":"/",
     "project_key":"MDINTTST",
     "summary":"Oh No!",

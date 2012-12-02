@@ -12,11 +12,11 @@
     <slf4j.version>1.5.8</slf4j.version>
 
     <!-- override in command line for testing -->
-    <host>localhost</host>
-    <port>443</port>
-    <ssl>true</ssl>
-    <username>jira</username>
-    <password>jira</password>
+    <jira.host>localhost</jira.host>
+    <jira.port>443</jira.port>
+    <jira.ssl>true</jira.ssl>
+    <jira.username>jira</jira.username>
+    <jira.password>jira</jira.password>
   </properties>
 
   <scm>
