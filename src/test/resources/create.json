@@ -1,7 +1,7 @@
 {
   "fields": {
     "host":"${host}",
-    "port":"${port}",
+    "port":${port},
     "use_ssl":${ssl},
     "username":"${username}",
     "password":"${password}",
