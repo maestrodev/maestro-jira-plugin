@@ -17,11 +17,16 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.org.apache.xml.internal.security.utils.Base64;
+
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import javax.naming.AuthenticationException;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,33 +62,40 @@ public class JiraWorker
 
   /**
    * update an issue in Jira
+   * 
+   * @throws IOException
+   * @throws JsonMappingException
+   * @throws JsonGenerationException
+   * @throws URISyntaxException
    */
-  public void createIssue() {
+  public void createIssue() throws JsonGenerationException, JsonMappingException, IOException {
+    logger.info("Creating Issue In JIRA");
+    writeOutput("Creating An Issue In JIRA\n");
+
+    URI jiraServerUri;
     try {
-      logger.info("Creating Issue In JIRA");
-      writeOutput("Creating An Issue In JIRA\n");
-
-      URI jiraServerUri = buildUri(CREATE_ISSUE_PATH);
-
-
-      String auth = String.valueOf(Base64.encode((this.getField("username")
-              + ":" + this.getField("password")).getBytes()));
-      ObjectMapper mapper = new ObjectMapper();
-
-
-
-      String data = mapper.writeValueAsString(getJiraIssue());
-      Client client = Client.create();
-      WebResource webResource = client.resource(jiraServerUri.toString());
-      ClientResponse response = webResource.header("Authorization", "Basic " + auth).type("application/json").accept("application/json").post(ClientResponse.class, data);
-      int statusCode = response.getStatus();
-
-      String body = response.getEntity(String.class);
-      JiraCreateResponse createResponse = mapper.readValue(body, JiraCreateResponse.class);
-      handleCreateResponse(statusCode, createResponse, jiraServerUri.getScheme().contains("https"), mapper);
-    } catch (Exception e) {
-      this.setError("Failed To Create Issue In JIRA " + e.getMessage());
+      jiraServerUri = buildUri(CREATE_ISSUE_PATH);
+    } catch (URISyntaxException e) {
+      setError("URI is not valid: " + buildUrl(CREATE_ISSUE_PATH) );
+      return;
     }
+
+
+    String auth = String.valueOf(Base64.encode((this.getField("username")
+            + ":" + this.getField("password")).getBytes()));
+    ObjectMapper mapper = new ObjectMapper();
+
+
+
+    String data = mapper.writeValueAsString(getJiraIssue());
+    Client client = Client.create();
+    WebResource webResource = client.resource(jiraServerUri.toString());
+    ClientResponse response = webResource.header("Authorization", "Basic " + auth).type("application/json").accept("application/json").post(ClientResponse.class, data);
+    int statusCode = response.getStatus();
+
+    String body = response.getEntity(String.class);
+    JiraCreateResponse createResponse = mapper.readValue(body, JiraCreateResponse.class);
+    handleCreateResponse(statusCode, createResponse, jiraServerUri.getScheme().contains("https"), mapper);
   }
 
   private URI buildUri(String path) throws URISyntaxException {
@@ -99,18 +111,28 @@ public class JiraWorker
             null));
   }
 
-  private void handleCreateResponse(int statusCode, JiraCreateResponse createResponse, boolean useSsl, ObjectMapper mapper) throws Exception {
+  private String buildUrl(String path) {
+    boolean useSsl = Boolean.parseBoolean(this.getField("use_ssl"));
+    return "http" + (useSsl ? "s" : "") + "://" + this.getField("host") + ":" + this.getField("port") + "/" + this.getWebPath() + path;
+  }
+
+  private void handleCreateResponse(int statusCode, JiraCreateResponse createResponse, boolean useSsl, ObjectMapper mapper) {
     if (statusCode == 401) {
-      throw new AuthenticationException("Invalid Username or Password");
+      setError("Invalid Username or Password");
     } else if (statusCode == 404) {
-      throw new Exception("Rest Endpoint Not Found, Make Sure Jira Is "
-              + "Atleast Version 5 And Accept Remote API Calls Is Enabled");
+      setError("Rest Endpoint Not Found, Make Sure Jira Is "
+              + "At Least Version 5 And Accept Remote API Calls Is Enabled");
     } else if (statusCode == 201) {
       writeOutput("Successfully Created An Issue In Jira\n");
       writeOutput("Issue Key :: " + createResponse.getKey() + "\n");
 
-      String link = (buildUri("/browse/"
-              + createResponse.getKey())).toASCIIString();
+      String link;
+      try {
+        link = (buildUri("/browse/" + createResponse.getKey())).toASCIIString();
+      } catch (URISyntaxException e) {
+        setError("URI is not valid: " + buildUrl("/browse/" + createResponse.getKey()));
+        return;
+      }
       writeOutput("Link :: " + link + "\n");
       addLink("Issue " + createResponse.getKey(), link);
 
@@ -130,7 +152,7 @@ public class JiraWorker
         }
       }
 
-      throw new Exception(errorMessage);
+      setError(errorMessage);
     }
   }
 
@@ -138,48 +160,53 @@ public class JiraWorker
    * update an issue in Jira
    */
   public void transitionIssues() {
+    logger.info("Transitioning Issue In JIRA");
+    writeOutput("Transitioning An Issue In JIRA\n");
+
+
+    JerseyJiraRestClientFactory factory = new JerseyJiraRestClientFactory();
+    URI jiraServerUri;
     try {
-      logger.info("Transitioning Issue In JIRA");
-      writeOutput("Transitioning An Issue In JIRA\n");
+      jiraServerUri = buildUri("");
+    } catch (URISyntaxException e) {
+      setError("URI is not valid: " + buildUrl("") );
+      return;
+    }
 
+    JiraRestClient restClient = factory.createWithBasicHttpAuthentication(jiraServerUri,
+            this.getField("username"),
+            this.getField("password"));
+    NullProgressMonitor pm = new NullProgressMonitor();
 
-      JerseyJiraRestClientFactory factory = new JerseyJiraRestClientFactory();
-      URI jiraServerUri = buildUri("");
+    if (getFields().get("issue_keys") == null || ((List) getFields().get("issue_keys")).isEmpty()) {
+      throw new RuntimeException("Null Or Empty Issue Key List");
+    }
+    List<String> issueKeys = (List<String>) getFields().get("issue_keys");
 
-      JiraRestClient restClient = factory.createWithBasicHttpAuthentication(jiraServerUri,
-              this.getField("username"),
-              this.getField("password"));
-      NullProgressMonitor pm = new NullProgressMonitor();
-
-      if (getFields().get("issue_keys") == null || ((List) getFields().get("issue_keys")).isEmpty()) {
-        throw new Exception("Null Or Empty Issue Key List");
+    for (String issueKey : issueKeys) {
+      Issue issue = restClient.getIssueClient().getIssue(issueKey, pm);
+      if (issue == null) {
+        setError("Issue Not Found: " + issueKey);
+        return;
       }
-      List<String> issueKeys = (List<String>) getFields().get("issue_keys");
 
-      for (String issueKey : issueKeys) {
-        transitionIssueToTransitionName(restClient, issueKey, pm);
+      final Iterable<Transition> transitions = restClient.getIssueClient().getTransitions(issue, pm);
+      String transitionName = getField("transition_name");
+      Transition transition = getTransitionByName(transitions, transitionName);
+      if (transition == null) {
+        setError("Transition Not Found: " + transitionName);
+        return;
       }
-    } catch (Exception e) {
-      this.setError("Failed To Transition Issue In JIRA " + e.getMessage());
+
+      transitionIssueToTransitionName(restClient, issue, transition, pm);
     }
   }
 
-  private void transitionIssueToTransitionName(JiraRestClient restClient, String issueKey, NullProgressMonitor pm) throws Exception {
-    Issue issue = restClient.getIssueClient().getIssue(issueKey, pm);
-    if (issue == null) {
-      throw new Exception("Issue Not Found - " + issueKey);
-    }
-
-
-    final Iterable<Transition> transitions = restClient.getIssueClient().getTransitions(issue, pm);
-    Transition transition = getTransitionByName(transitions, getField("transition_name"));
-    if (transition == null) {
-      throw new Exception("Transition Not Found - " + getField("transition_name"));
-    }
+  private void transitionIssueToTransitionName(JiraRestClient restClient, Issue issue, Transition transition, NullProgressMonitor pm) {
     TransitionInput transitionInput = new TransitionInput(transition.getId());
     restClient.getIssueClient().transition(issue, transitionInput, pm);
 
-    writeOutput("Successfully Transitioned Issue " + issueKey + " To " + getField("transition_name") + "\n");
+    writeOutput("Successfully Transitioned Issue " + issue.getKey() + " To " + transition.getName() + "\n");
   }
 
   private static Transition getTransitionByName(Iterable<Transition> transitions, String transitionName) {
