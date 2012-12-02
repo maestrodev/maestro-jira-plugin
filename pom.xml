@@ -10,6 +10,13 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.5.8</slf4j.version>
+
+    <!-- override in command line for testing -->
+    <host>localhost</host>
+    <port>443</port>
+    <ssl>true</ssl>
+    <username>jira</username>
+    <password>jira</password>
   </properties>
 
   <scm>
@@ -52,23 +59,25 @@
       </exclusions>
     </dependency>
 
-<!--    <dependency>
-        <groupId>com.ghosthack</groupId>
-        <artifactId>jira-json-client</artifactId>
-        <version>1.0.0</version>
-    </dependency>-->
+<!--
     <dependency>
-            <groupId>com.atlassian.jira</groupId>
-            <artifactId>jira-rest-java-client</artifactId>
-            <version>0.5</version>
+      <groupId>com.ghosthack</groupId>
+      <artifactId>jira-json-client</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+-->
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-rest-java-client</artifactId>
+      <version>0.5</version>
     </dependency>
 <!--
     <dependency>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>1.5</version>
-    </dependency>-->
-
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-client</artifactId>
+      <version>1.5</version>
+    </dependency>
+-->
 
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -82,7 +91,8 @@
       <scope>test</scope>
     </dependency>
 
-<!--    <dependency>
+<!--
+    <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-core</artifactId>
       <version>1.5</version>
@@ -91,7 +101,8 @@
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-json</artifactId>
       <version>1.5</version>
-    </dependency>-->
+    </dependency>
+-->
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
@@ -117,6 +128,12 @@
         <filtering>true</filtering>
       </resource>
     </resources>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

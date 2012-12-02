@@ -1,10 +1,10 @@
 {
   "fields": {
-    "host":"HOST",
-    "port":PORT,
-    "use_ssl":USE_SSL,
-    "username":"USERNAME",
-    "password":"PASSWORD",
+    "host":"${host}",
+    "port":"${port}",
+    "use_ssl":${ssl},
+    "username":"${username}",
+    "password":"${password}",
     "web_path":"/",
     "project_key":"MDINTTST",
     "summary":"Oh No!",
