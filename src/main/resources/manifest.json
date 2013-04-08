@@ -89,8 +89,7 @@
             }
           },
           "outputs" : {},
-          "tool_name" : "ALM",
-          "icon": "jira.png"
+          "tool_name" : "ALM"
         }
       },
       {
@@ -164,8 +163,7 @@
             }
           },
           "outputs" : {},
-          "tool_name" : "ALM",
-          "icon": "jira.png"
+          "tool_name" : "ALM"
         }
       }
 
