@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +14,9 @@ import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.junit.Before;
 import org.junit.Test;
+
 
 /**
  * Tests for Maestro Jira plugin.
@@ -22,6 +25,21 @@ public class JiraWorkerTest
 {
     private static final JSONParser parser = new JSONParser();
     private static List issueKeys;
+
+    HashMap<String, Object> stompConfig;
+    JiraWorker worker;
+
+    @Before
+    public void setUp() throws Exception {
+        stompConfig = new HashMap<String, Object>();
+        stompConfig.put("host", "localhost");
+        stompConfig.put("port", "61613");
+        stompConfig.put("queue", "test");
+
+        worker = new JiraWorker();   
+        worker.setStompConfig(stompConfig);
+    }
+
     /**
      * Test for Jira
      */
@@ -29,8 +47,6 @@ public class JiraWorkerTest
     public void createIssue()
         throws Exception
     {
-        JiraWorker worker = new JiraWorker();
-
         worker.setWorkitem( loadJson( "create" ) );
 
         worker.createIssue();
@@ -53,8 +69,6 @@ public class JiraWorkerTest
     public void transitIssue()
         throws Exception
     {
-        JiraWorker worker = new JiraWorker();
-
         worker.setWorkitem( loadJson( "transition" ) );
         
         worker.setField("issue_keys", issueKeys);
