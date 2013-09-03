@@ -1,4 +1,5 @@
 {
+  "image": "jira.png",
   "source_types" : [
     {
       "name" : "Jira",
