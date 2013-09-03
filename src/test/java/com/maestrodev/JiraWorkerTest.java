@@ -1,6 +1,7 @@
 package com.maestrodev;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,11 +12,15 @@ import java.util.Map;
 
 
 import org.apache.commons.io.IOUtils;
+import org.fusesource.stomp.client.BlockingConnection;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
+
+import com.maestrodev.maestro.plugins.StompConnectionFactory;
 
 
 /**
@@ -27,6 +32,8 @@ public class JiraWorkerTest
     private static List issueKeys;
 
     HashMap<String, Object> stompConfig;
+    StompConnectionFactory stompConnectionFactory;
+    BlockingConnection blockingConnection;
     JiraWorker worker;
 
     @Before
@@ -36,7 +43,14 @@ public class JiraWorkerTest
         stompConfig.put("port", "61613");
         stompConfig.put("queue", "test");
 
+        // Setup the mock stomp connection
+        stompConnectionFactory = mock(StompConnectionFactory.class);
+        blockingConnection = mock(BlockingConnection.class);
+        when(stompConnectionFactory.getConnection(Matchers.anyString(),
+                       Matchers.anyInt())).thenReturn(blockingConnection);
+
         worker = new JiraWorker();   
+        worker.setStompConnectionFactory(stompConnectionFactory);
         worker.setStompConfig(stompConfig);
     }
 
@@ -47,13 +61,14 @@ public class JiraWorkerTest
     public void createIssue()
         throws Exception
     {
-        worker.setWorkitem( loadJson( "create" ) );
+        JiraWorker spy = spy(worker);
+        spy.setWorkitem( loadJson( "create" ) );
 
-        worker.createIssue();
+        spy.createIssue();
 
-        assertNull( worker.getError(), worker.getError() );
+        assertNull( spy.getError(), worker.getError() );
         
-        Map response = (Map) worker.getFields().get("jira");
+        Map response = (Map) spy.getFields().get("jira");
         
         assertNotNull(response.get("key"));
         
@@ -69,13 +84,14 @@ public class JiraWorkerTest
     public void transitIssue()
         throws Exception
     {
-        worker.setWorkitem( loadJson( "transition" ) );
+        JiraWorker spy = spy(worker);
+        spy.setWorkitem( loadJson( "transition" ) );
         
-        worker.setField("issue_keys", issueKeys);
+        spy.setField("issue_keys", issueKeys);
 
-        worker.transitionIssues();
+        spy.transitionIssues();
 
-        assertNull( worker.getError(), worker.getError() );
+        assertNull( spy.getError(), spy.getError() );
         
     }
     

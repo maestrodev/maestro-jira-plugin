@@ -13,6 +13,7 @@ import com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactor
 
 import com.maestrodev.jira.create.Issuetype;
 import com.maestrodev.jira.create.JiraCreate;
+import com.maestrodev.maestro.plugins.MaestroWorker;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -23,7 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
-import javax.naming.AuthenticationException;
+//import javax.naming.AuthenticationException;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
