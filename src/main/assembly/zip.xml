@@ -20,7 +20,7 @@
     </fileSet>
     <fileSet>
       <outputDirectory>/images</outputDirectory>
-      <directory>${basedir}/src/main/images</directory>
+      <directory>${basedir}/src/main/resources/images</directory>
     </fileSet>
   </fileSets>
   <files>
