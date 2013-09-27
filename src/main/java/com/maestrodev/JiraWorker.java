@@ -96,7 +96,7 @@ public class JiraWorker
     }
     catch (Exception e) {
         logger.error("Error in Create Issue", e);
-        setError("Problem creating issue in JIRA (" + e.getClass().getName() + ")");
+        setError("Problem creating issue in JIRA: " + e.getLocalizedMessage() + " (" + e.getClass().getName() + ")");
     }
   }
 
