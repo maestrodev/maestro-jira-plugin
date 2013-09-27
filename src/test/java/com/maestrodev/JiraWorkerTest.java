@@ -29,7 +29,7 @@ import com.maestrodev.maestro.plugins.StompConnectionFactory;
 public class JiraWorkerTest
 {
     private static final JSONParser parser = new JSONParser();
-    private static List issueKeys;
+    private static List<String> issueKeys;
 
     HashMap<String, Object> stompConfig;
     StompConnectionFactory stompConnectionFactory;
@@ -72,8 +72,8 @@ public class JiraWorkerTest
         
         assertNotNull(response.get("key"));
         
-        issueKeys = new ArrayList();
-        issueKeys.add(response.get("key")); 
+        issueKeys = new ArrayList<String>();
+        issueKeys.add((String)response.get("key"));
     }
 
     

@@ -1,42 +1,34 @@
 package com.maestrodev;
 
-import com.maestrodev.jira.create.Project;
-import com.maestrodev.jira.create.Fields;
-import com.maestrodev.jira.create.JiraCreateResponse;
 import com.atlassian.jira.rest.client.JiraRestClient;
 import com.atlassian.jira.rest.client.NullProgressMonitor;
+import com.atlassian.jira.rest.client.ProgressMonitor;
+import com.atlassian.jira.rest.client.domain.BasicIssue;
 import com.atlassian.jira.rest.client.domain.Issue;
 import com.atlassian.jira.rest.client.domain.Transition;
+import com.atlassian.jira.rest.client.domain.input.ComplexIssueInputFieldValue;
+import com.atlassian.jira.rest.client.domain.input.FieldInput;
+import com.atlassian.jira.rest.client.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.domain.input.TransitionInput;
 
 import com.atlassian.jira.rest.client.internal.jersey.JerseyJiraRestClientFactory;
 
-import com.maestrodev.jira.create.Issuetype;
-import com.maestrodev.jira.create.JiraCreate;
 import com.maestrodev.maestro.plugins.MaestroWorker;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-//import javax.naming.AuthenticationException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class JiraWorker
         extends MaestroWorker {
-
-  private final Logger logger = LoggerFactory.getLogger(this.getClass());
-  private final String CREATE_ISSUE_PATH = "rest/api/2/issue/";
+  private final Log logger = LogFactory.getLog(this.getClass());
 
   private String getWebPath() {
     if (getField("web_path") == null) {
@@ -45,20 +37,20 @@ public class JiraWorker
     return "/" + getField("web_path").replaceAll("\\/$", "").replaceAll("^\\/", "");
   }
 
-  private JiraCreate getJiraIssue() {
-    JiraCreate jiraCreate = new JiraCreate();
-    Fields fields = new Fields();
-    Project project = new Project();
-    project.setKey(getField("project_key"));
-    fields.setSummary(getField("summary"));
-    fields.setDescription(getField("description"));
-    Issuetype issuetype = new Issuetype();
-    issuetype.setName(getField("issue_type_name"));
-    fields.setIssuetype(issuetype);
-    fields.setProject(project);
-    jiraCreate.setFields(fields);
+  private IssueInput getJiraIssue() {
+    List<FieldInput> fields = new ArrayList<FieldInput>();
+    Map<String, Object> project = new HashMap<String, Object>();
+    Map<String, Object> issueType = new HashMap<String, Object>();
 
-    return jiraCreate;
+    project.put("key", getField("project_key"));
+    issueType.put("name", getField("issue_type_name"));
+
+    fields.add(new FieldInput("project", new ComplexIssueInputFieldValue(project)));
+    fields.add(new FieldInput("summary", getField("summary")));
+    fields.add(new FieldInput("description", getField("description")));
+    fields.add(new FieldInput("issuetype", new ComplexIssueInputFieldValue(issueType)));
+
+    return IssueInput.createWithFields(fields.toArray(new FieldInput[0]));
   }
 
   /**
@@ -69,34 +61,43 @@ public class JiraWorker
    * @throws JsonGenerationException
    * @throws URISyntaxException
    */
-  public void createIssue() throws JsonGenerationException, JsonMappingException, IOException {
+  public void createIssue() {
     logger.info("Creating Issue In JIRA");
     writeOutput("Creating An Issue In JIRA\n");
 
+    JerseyJiraRestClientFactory factory = new JerseyJiraRestClientFactory();
     URI jiraServerUri;
     try {
-      jiraServerUri = buildUri(CREATE_ISSUE_PATH);
+      jiraServerUri = buildUri("");
     } catch (URISyntaxException e) {
-      setError("URI is not valid: " + buildUrl(CREATE_ISSUE_PATH) );
+      setError("URI is not valid: " + buildUrl("") );
       return;
     }
 
+    JiraRestClient restClient = factory.createWithBasicHttpAuthentication(jiraServerUri,
+            this.getField("username"),
+            this.getField("password"));
+    ProgressMonitor pm = new NullProgressMonitor();
 
-    String auth = String.valueOf(Base64.encode((this.getField("username")
-            + ":" + this.getField("password")).getBytes()));
-    ObjectMapper mapper = new ObjectMapper();
+    try {
+        BasicIssue issue = restClient.getIssueClient().createIssue(getJiraIssue(), pm);
+        writeOutput("Successfully Created An Issue In Jira\n");
+        writeOutput("Issue Key :: " + issue.getKey() + "\n");
 
-
-
-    String data = mapper.writeValueAsString(getJiraIssue());
-    Client client = Client.create();
-    WebResource webResource = client.resource(jiraServerUri.toString());
-    ClientResponse response = webResource.header("Authorization", "Basic " + auth).type("application/json").accept("application/json").post(ClientResponse.class, data);
-    int statusCode = response.getStatus();
-
-    String body = response.getEntity(String.class);
-    JiraCreateResponse createResponse = mapper.readValue(body, JiraCreateResponse.class);
-    handleCreateResponse(statusCode, createResponse, jiraServerUri.getScheme().contains("https"), mapper);
+        String link;
+        try {
+          link = (buildUri("/browse/" + issue.getKey())).toASCIIString();
+        } catch (URISyntaxException e) {
+          setError("URI is not valid: " + buildUrl("/browse/" + issue.getKey()));
+          return;
+        }
+        writeOutput("Link :: " + link + "\n");
+        addLink("Issue " + issue.getKey(), link);
+    }
+    catch (Exception e) {
+        logger.error("Error in Create Issue", e);
+        setError("Problem creating issue in JIRA (" + e.getClass().getName() + ")");
+    }
   }
 
   private URI buildUri(String path) throws URISyntaxException {
@@ -117,49 +118,11 @@ public class JiraWorker
     return "http" + (useSsl ? "s" : "") + "://" + this.getField("host") + ":" + this.getField("port") + "/" + this.getWebPath() + path;
   }
 
-  private void handleCreateResponse(int statusCode, JiraCreateResponse createResponse, boolean useSsl, ObjectMapper mapper) {
-    if (statusCode == 401) {
-      setError("Invalid Username or Password");
-    } else if (statusCode == 404) {
-      setError("Rest Endpoint Not Found, Make Sure Jira Is "
-              + "At Least Version 5 And Accept Remote API Calls Is Enabled");
-    } else if (statusCode == 201) {
-      writeOutput("Successfully Created An Issue In Jira\n");
-      writeOutput("Issue Key :: " + createResponse.getKey() + "\n");
-
-      String link;
-      try {
-        link = (buildUri("/browse/" + createResponse.getKey())).toASCIIString();
-      } catch (URISyntaxException e) {
-        setError("URI is not valid: " + buildUrl("/browse/" + createResponse.getKey()));
-        return;
-      }
-      writeOutput("Link :: " + link + "\n");
-      addLink("Issue " + createResponse.getKey(), link);
-
-      setField("jira", mapper.convertValue(createResponse, Map.class));
-    } else {
-      String errorMessage = "";
-      if (createResponse.getErrorMessages() != null) {
-        for (String message : createResponse.getErrorMessages()) {
-          errorMessage += message + "\n";
-        }
-
-      }
-
-      if (createResponse.getErrors() != null) {
-        for (Object key : createResponse.getErrors().keySet()) {
-          errorMessage += key + " :: " + createResponse.getErrors().get(key) + "\n";
-        }
-      }
-
-      setError(errorMessage);
-    }
-  }
 
   /**
    * update an issue in Jira
    */
+  @SuppressWarnings("unchecked")
   public void transitionIssues() {
     logger.info("Transitioning Issue In JIRA");
     writeOutput("Transitioning An Issue In JIRA\n");
@@ -177,12 +140,13 @@ public class JiraWorker
     JiraRestClient restClient = factory.createWithBasicHttpAuthentication(jiraServerUri,
             this.getField("username"),
             this.getField("password"));
-    NullProgressMonitor pm = new NullProgressMonitor();
+    ProgressMonitor pm = new NullProgressMonitor();
 
-    if (getFields().get("issue_keys") == null || ((List) getFields().get("issue_keys")).isEmpty()) {
+    List<String> issueKeys = (List<String>) getFields().get("issue_keys");
+
+    if (issueKeys == null || issueKeys.isEmpty()) {
       throw new RuntimeException("Null Or Empty Issue Key List");
     }
-    List<String> issueKeys = (List<String>) getFields().get("issue_keys");
 
     for (String issueKey : issueKeys) {
       Issue issue = restClient.getIssueClient().getIssue(issueKey, pm);
@@ -203,7 +167,7 @@ public class JiraWorker
     }
   }
 
-  private void transitionIssueToTransitionName(JiraRestClient restClient, Issue issue, Transition transition, NullProgressMonitor pm) {
+  private void transitionIssueToTransitionName(JiraRestClient restClient, Issue issue, Transition transition, ProgressMonitor pm) {
     TransitionInput transitionInput = new TransitionInput(transition.getId());
     restClient.getIssueClient().transition(issue, transitionInput, pm);
 
