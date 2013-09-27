@@ -62,9 +62,6 @@ public class JiraWorker
    * @throws URISyntaxException
    */
   public void createIssue() {
-    logger.info("Creating Issue In JIRA");
-    writeOutput("Creating An Issue In JIRA\n");
-
     JerseyJiraRestClientFactory factory = new JerseyJiraRestClientFactory();
     URI jiraServerUri;
     try {
@@ -124,10 +121,6 @@ public class JiraWorker
    */
   @SuppressWarnings("unchecked")
   public void transitionIssues() {
-    logger.info("Transitioning Issue In JIRA");
-    writeOutput("Transitioning An Issue In JIRA\n");
-
-
     JerseyJiraRestClientFactory factory = new JerseyJiraRestClientFactory();
     URI jiraServerUri;
     try {
