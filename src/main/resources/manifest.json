@@ -8,7 +8,8 @@
         "port":"Integer",
         "username": "String",
         "password": "Password",
-        "web_path":"String"
+        "web_path":"String",
+        "use_ssl": "Boolean"
       }  
     }
   ],
