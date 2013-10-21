@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.map.ObjectMapper;
 
 public class JiraWorker
         extends MaestroWorker {
@@ -90,6 +91,8 @@ public class JiraWorker
         }
         writeOutput("Link :: " + link + "\n");
         addLink("Issue " + issue.getKey(), link);
+
+        setField("jira", new ObjectMapper().convertValue(issue, Map.class));
     }
     catch (Exception e) {
         logger.error("Error in Create Issue", e);
