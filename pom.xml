@@ -8,7 +8,7 @@
   </parent>
   <groupId>com.maestrodev.maestro.plugins</groupId>
   <artifactId>maestro-jira-plugin</artifactId>
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
   <name>maestro-jira-plugin</name>
 
   <properties>
