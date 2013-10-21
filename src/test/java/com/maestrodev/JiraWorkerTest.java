@@ -61,12 +61,14 @@ public class JiraWorkerTest
     public void createIssue()
         throws Exception
     {
+        // TODO: spies aren't really used for spying. We should split this into unit tests (that stub the REST calls)
+        // and integration tests (that require a running JIRA)
         JiraWorker spy = spy(worker);
         spy.setWorkitem( loadJson( "create" ) );
 
         spy.createIssue();
 
-        assertNull( spy.getError(), worker.getError() );
+        assertNull( spy.getError() );
         
         Map response = (Map) spy.getFields().get("jira");
         
@@ -91,7 +93,7 @@ public class JiraWorkerTest
 
         spy.transitionIssues();
 
-        assertNull( spy.getError(), spy.getError() );
+        assertNull( spy.getError() );
         
     }
     
